@@ -1,0 +1,22 @@
+{
+	"folders": [
+		{
+			"path": "backend"
+		},
+		{
+			"path": "frontend"
+		}
+	],
+	"settings": {},
+	"launch": {
+		"configurations": [
+			{
+				"type": "msedge",
+				"name": "localhost:3000",
+				"request": "launch",
+				"url": "localhost:3000",
+				
+			}
+		]
+	}
+}
