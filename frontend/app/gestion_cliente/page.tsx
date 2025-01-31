@@ -1,5 +1,4 @@
 import styles from '../../styles/Cliente.module.css';
-import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -8,11 +7,6 @@ export default function Home() {
       <header className={styles.header}>
         <span className={styles.logo}>Facturador</span>
       </header>
-
-      {/* Imagen central */}
-      {/* <div className={styles.imageContainer}>
-        <img src="/illustration.png" alt="Ilustración" className={styles.image} />
-      </div> */}
 
       {/* Título y descripción */}
       <h1 className={styles.title}>Gestiona Clientes</h1>
@@ -32,10 +26,7 @@ export default function Home() {
       {/* Botones */}
       <div className={styles.buttonContainer}>
         <a href='/inicio_sesion' className={`${styles.button} ${styles.skip}`}>Saltar</a>
-        
         <a href='/reportes' className={`${styles.button} ${styles.next}`}>Siguiente</a>
-        
-        
       </div>
     </div>
   );

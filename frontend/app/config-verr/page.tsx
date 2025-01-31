@@ -4,8 +4,17 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "../../styles/Ver-confirg.module.css"; // Asegúrate de que esta ruta sea correcta
 
+// Definimos una interfaz para el tipo de datos del tenant
+interface Tenant {
+  names: string;
+  last_names: string;
+  social_reason: string;
+  phone: string;
+  email: string;
+}
+
 export default function VerDatos() {
-  const [tenant, setTenant] = useState<any>(null); // Estado para los datos del tenant
+  const [tenant, setTenant] = useState<Tenant | null>(null); // Estado tipado
   const [loading, setLoading] = useState<boolean>(true); // Estado de carga
   const [error, setError] = useState<string | null>(null); // Estado para errores
   const router = useRouter();
@@ -17,14 +26,14 @@ export default function VerDatos() {
         const response = await fetch(`http://localhost:3000/tenant/${tenantId}`);
 
         if (response.ok) {
-          const data = await response.json();
-          setTenant(data); // Guardar los datos del tenant
+          const data: Tenant = await response.json(); // Aplicamos el tipo Tenant
+          setTenant(data);
         } else {
           throw new Error("No se pudieron obtener los datos del tenant.");
         }
-      } catch (err: any) {
-        console.error("Error al obtener los datos:", err.message);
-        setError(err.message || "Hubo un error al cargar los datos.");
+      } catch (err) {
+        console.error("Error al obtener los datos:", (err as Error).message);
+        setError((err as Error).message || "Hubo un error al cargar los datos.");
       } finally {
         setLoading(false); // Finalizar el estado de carga
       }

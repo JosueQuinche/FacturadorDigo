@@ -6,9 +6,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Heart } from "lucide-react";
 
+// Definir el tipo Client
+type Client = {
+  id: number;
+  names: string;
+  last_names: string;
+};
+
 const BlankPage = () => {
-  const [clients, setClients] = useState<any[]>([]);
-  const [favorites, setFavorites] = useState<any[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [favorites, setFavorites] = useState<Client[]>([]);
   const router = useRouter();
 
   // Obtener clientes desde el backend
@@ -31,7 +38,7 @@ const BlankPage = () => {
   }, []);
 
   // Guardar favoritos en localStorage
-  const toggleFavorite = (client: any) => {
+  const toggleFavorite = (client: Client) => {
     const updatedFavorites = favorites.some((fav) => fav.id === client.id)
       ? favorites.filter((fav) => fav.id !== client.id)
       : [...favorites, client];

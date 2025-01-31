@@ -1,240 +1,179 @@
 "use client";
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import styles from '../../styles/Facturacion.module.css';
+import { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import styles from "../../styles/Facturacion.module.css";
+
+interface Client {
+  id: number;
+  name: string;
+  lastname: string;
+}
+
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+}
 
 export default function Facturacion() {
   const [formData, setFormData] = useState({
-    date: '',
-    total: '',
-    discount: '',
-    final_total: '',
-    client: '',
-    product: '',
+    date: "",
+    total: "",
+    discount: "",
+    final_total: "",
+    client: "",
+    product: "",
     quantity: 1,
   });
-  const [clients, setClients] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+
+  const [clients, setClients] = useState<Client[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const router = useRouter();
 
+  // Simulación de datos de clientes y productos
   useEffect(() => {
-    const fetchData = async () => {
-      const clientData = [
-        { id: 1, name: "Tito Andres", lastname: "Valarezo Gonzáles" },
-        { id: 2, name: "Josué Sebastian", lastname: "Quinche Sánchez" },
-        { id: 3, name: "Mireya Abigail", lastname: "Cruz Flores" },
-        { id: 4, name: "Juan Carlos", lastname: "Ramirez Julia" },
-        { id: 5, name: "Janeth Alejandra", lastname: "Gonzales Ramirez" },
-        { id: 6, name: "Luis Alberto", lastname: "Torres Mendoza" },
-        { id: 7, name: "Ana Paula", lastname: "Herrera Cruz" },
-        { id: 8, name: "Valeria Isabel", lastname: "Rojas Peñas" },
-        { id: 9, name: "Diego Arturo", lastname: "Pineda Reyes" },
-      ];
-      
-      const productData = [
-        { id: 1, name: "Camiseta", price: 15.00 },
-        { id: 2, name: "Smartwatch ActiveFit X100", price: 75.00 },
-        { id: 3, name: "Auriculares Inalámbricos SoundPro 360", price: 50.00 },
-        { id: 4, name: "Cafetera Espresso Barista+", price: 120.00 },
-        { id: 5, name: "Laptop ProMax 15.6\"", price: 950.00 },
-        { id: 6, name: "Altavoz Bluetooth PartyBoom 500", price: 65.00 },
-        { id: 7, name: "Bicicleta Urbana EcoRide", price: 300.00 },
-        { id: 8, name: "Set de Cuchillos ChefMaster", price: 45.00 },
-        { id: 9, name: "Robot Aspiradora SmartClean 300", price: 250.00 },
-        { id: 10, name: "Kit de Herramientas MultiPro 80 Piezas", price: 80.00 },
-      ];
+    setClients([
+      { id: 1, name: "Tito Andres", lastname: "Valarezo Gonzáles" },
+      { id: 2, name: "Josué Sebastian", lastname: "Quinche Sánchez" },
+      { id: 3, name: "Mireya Abigail", lastname: "Cruz Flores" },
+      { id: 4, name: "Juan Carlos", lastname: "Ramirez Julia" },
+      { id: 5, name: "Janeth Alejandra", lastname: "Gonzales Ramirez" },
+      { id: 6, name: "Luis Alberto", lastname: "Torres Mendoza" },
+      { id: 7, name: "Ana Paula", lastname: "Herrera Cruz" },
+      { id: 8, name: "Valeria Isabel", lastname: "Rojas Peñas" },
+      { id: 9, name: "Diego Arturo", lastname: "Pineda Reyes" },
+    ]);
 
-      setClients(clientData);
-      setProducts(productData);
-    };
-
-    fetchData();
+    setProducts([
+      { id: 1, name: "Camiseta", price: 15.0 },
+      { id: 2, name: "Smartwatch ActiveFit X100", price: 75.0 },
+      { id: 3, name: "Auriculares SoundPro 360", price: 50.0 },
+      { id: 4, name: "Cafetera Espresso Barista+", price: 45.0 },
+      { id: 5, name: "Laptop ProMax 15.6\"", price: 1.2 },
+      { id: 6, name: "Altavoz Bluetooth PartyBoom 500", price: 120.0 },
+      { id: 7, name: "Bicicleta Urbana EcoRide", price: 250.0 },
+      { id: 8, name: "Set de Cuchillos ChefMaster", price: 50.0 },
+      { id: 9, name: "Robot Aspiradora SmartClean 300", price: 320.0 },
+      { id: 10, name: "Kit de Herramientas MultiPro 80 Piezas", price: 75.0 },
+    ]);
   }, []);
 
-  const calculateFinalTotal = () => {
-    const total = parseFloat(formData.total);
-    const discount = parseFloat(formData.discount);
-    const quantity = formData.quantity;
+  // Cálculo del total final
+  useEffect(() => {
+    const calculateFinalTotal = () => {
+      const total = parseFloat(formData.total);
+      const discount = parseFloat(formData.discount) || 0;
+      const quantity = formData.quantity || 1;
 
-    if (!isNaN(total) && !isNaN(discount) && !isNaN(quantity)) {
-      const subtotal = total * quantity;
-      const finalTotal = subtotal - (subtotal * discount / 100);
-      setFormData(prevData => ({
-        ...prevData,
-        final_total: finalTotal.toFixed(2)
-      }));
-    }
-  };
+      if (!isNaN(total)) {
+        const subtotal = total * quantity;
+        const finalTotal = subtotal - (subtotal * discount) / 100;
+        setFormData((prevData) => ({
+          ...prevData,
+          final_total: finalTotal.toFixed(2),
+        }));
+      }
+    };
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    calculateFinalTotal();
+  }, [formData.total, formData.discount, formData.quantity]);
+
+  // Manejo de cambios en los inputs
+  const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
-    const newValue = name === 'quantity' ? parseInt(value) : value;
+    const newValue = name === "quantity" ? parseInt(value) || 1 : value;
 
-    setFormData(prevData => ({
+    setFormData((prevData) => ({
       ...prevData,
-      [name]: newValue
+      [name]: newValue,
     }));
 
-    if (name === 'product') {
-      const selectedProduct = products.find(product => product.id.toString() === value);
+    if (name === "product") {
+      const selectedProduct = products.find((product) => product.id.toString() === value);
       if (selectedProduct) {
-        setFormData(prevData => ({
+        setFormData((prevData) => ({
           ...prevData,
-          total: selectedProduct.price.toString()
+          total: selectedProduct.price.toString(),
         }));
       }
     }
   };
 
-  useEffect(() => {
-    if (formData.total && formData.discount && formData.quantity) {
-      calculateFinalTotal();
-    }
-  }, [formData.total, formData.discount, formData.quantity]);
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  // Manejo del envío del formulario
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!formData.date || !formData.total || !formData.discount || !formData.final_total || !formData.client || !formData.product || !formData.quantity) {
-      setError('Por favor, complete todos los campos.');
-      setSuccess('');
-    } else {
-      setError('');
-      setSuccess('Factura creada exitosamente');
-
-      // Construcción correcta de los parámetros de consulta para la URL
-      const queryParams = new URLSearchParams({
-        client: String(formData.client),
-        product: String(formData.product),
-        quantity: String(formData.quantity),
-        discount: String(formData.discount),
-        total: String(formData.total),
-        final_total: String(formData.final_total),
-        date: formData.date,
-      }).toString();
-
-      // Redirección con URL construida correctamente
-      router.push(`/invoice_detail?${queryParams}`);
+    if (!formData.date || !formData.client || !formData.product) {
+      setError("Por favor, complete todos los campos.");
+      setSuccess("");
+      return;
     }
-  };
 
-  const handleBackClick = () => {
-    window.history.back();
+    setError("");
+    setSuccess("Factura creada exitosamente");
+
+    // Redirigir con parámetros
+    const queryParams = new URLSearchParams({
+      client: formData.client,
+      product: formData.product,
+      quantity: String(formData.quantity),
+      discount: formData.discount,
+      total: formData.total,
+      final_total: formData.final_total,
+      date: formData.date,
+    }).toString();
+
+    router.push(`/invoice_detail?${queryParams}`);
   };
 
   return (
-    <div className={styles.formContainer}>
-      <div className={styles.backButton} onClick={handleBackClick}>
-        <button className={styles.backButtonStyle}>←</button>
-      </div>
-      <h2 className={styles.formTitle}>Facturación</h2>
-      <form onSubmit={handleSubmit}>
-        <div className={styles.formGroup}>
-          <label htmlFor="date" className={styles.formLabel}>Fecha</label>
-          <input
-            type="date"
-            id="date"
-            name="date"
-            className={styles.formInput}
-            value={formData.date}
-            onChange={handleChange}
-          />
+    <div className={styles.container}>
+      <button className={styles.backButton} onClick={() => router.back()}>
+        ←
+      </button>
+      <h1 className={styles.title}>Facturación</h1>
+
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <label className={styles.label}>Fecha:</label>
+        <input type="date" name="date" value={formData.date} onChange={handleChange} required className={styles.input} />
+
+        <label className={styles.label}>Cliente:</label>
+        <select name="client" value={formData.client} onChange={handleChange} required className={styles.input}>
+          <option value="">Seleccionar Cliente</option>
+          {clients.map((client) => (
+            <option key={client.id} value={client.id}>
+              {client.name} {client.lastname}
+            </option>
+          ))}
+        </select>
+
+        <label className={styles.label}>Producto:</label>
+        <select name="product" value={formData.product} onChange={handleChange} required className={styles.input}>
+          <option value="">Seleccionar Producto</option>
+          {products.map((product) => (
+            <option key={product.id} value={product.id}>
+              {product.name}
+            </option>
+          ))}
+        </select>
+
+        <label className={styles.label}>Cantidad:</label>
+        <input type="number" name="quantity" value={formData.quantity} onChange={handleChange} min="1" required className={styles.input} />
+
+        <label className={styles.label}>Descuento (%):</label>
+        <input type="number" name="discount" value={formData.discount} onChange={handleChange} min="0" max="100" step="0.01" className={styles.input} />
+
+        <div className={styles.priceContainer}>
+          <span className={styles.dollarSign}>$</span>
+          <input type="text" value={formData.final_total} readOnly className={styles.priceInput} />
         </div>
 
-        <div className={styles.formGroup}>
-          <label htmlFor="client" className={styles.formLabel}>Cliente</label>
-          <select
-            id="client"
-            name="client"
-            className={styles.formInput}
-            value={formData.client}
-            onChange={handleChange}
-          >
-            <option value="">Seleccionar Cliente</option>
-            {clients.map((client) => (
-              <option key={client.id} value={client.id}>
-                {client.name} {client.lastname}
-              </option>
-            ))}
-          </select>
-        </div>
+        {error && <p className={styles.errorMessage}>{error}</p>}
+        {success && <p className={styles.successMessage}>{success}</p>}
 
-        <div className={styles.formGroup}>
-          <label htmlFor="product" className={styles.formLabel}>Producto</label>
-          <select
-            id="product"
-            name="product"
-            className={styles.formInput}
-            value={formData.product}
-            onChange={handleChange}
-          >
-            <option value="">Seleccionar Producto</option>
-            {products.map((product) => (
-              <option key={product.id} value={product.id}>
-                {product.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className={styles.formGroup}>
-          <label htmlFor="quantity" className={styles.formLabel}>Cantidad</label>
-          <input
-            type="number"
-            id="quantity"
-            name="quantity"
-            className={styles.formInput}
-            value={formData.quantity}
-            onChange={handleChange}
-            min="1"
-          />
-        </div>
-
-        <div className={styles.formGroup}>
-          <label htmlFor="total" className={styles.formLabel}>Total</label>
-          <div className={styles.dollarInput}>
-            <span className={styles.dollarSign}>$</span>
-            <input
-              type="number"
-              id="total"
-              name="total"
-              className={styles.formInput}
-              value={formData.total}
-              readOnly
-            />
-          </div>
-        </div>
-
-        <div className={styles.formGroup}>
-          <label htmlFor="discount" className={styles.formLabel}>Descuento (%)</label>
-          <input
-            type="number"
-            id="discount"
-            name="discount"
-            className={styles.formInput}
-            value={formData.discount}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className={styles.formGroup}>
-          <label htmlFor="final_total" className={styles.formLabel}>Total Final</label>
-          <input
-            type="number"
-            id="final_total"
-            name="final_total"
-            className={styles.formInput}
-            value={formData.final_total}
-            readOnly
-          />
-        </div>
-
-        {error && <div className={styles.formError}>{error}</div>}
-        {success && <div className={styles.formSuccess}>{success}</div>}
-
-        <button type="submit" className={styles.formButton}>Enviar</button>
+        <button type="submit" className={styles.button}>Generar Factura</button>
       </form>
     </div>
   );

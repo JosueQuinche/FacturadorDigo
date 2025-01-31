@@ -6,9 +6,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation"; // Asegurándote de tener el router
 import { Heart, Edit, Trash, CreditCard } from "lucide-react"; // Agregando los íconos
 
+// Definir tipo Producto
+interface Producto {
+  id: number;
+  name: string;
+  price: number;
+  description: string;
+}
+
 const ProductoPage = () => {
-  const [productos, setProductos] = useState<any[]>([]);
-  const [favorites, setFavorites] = useState<any[]>([]);
+  // Reemplazar any[] por Producto[]
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [favorites, setFavorites] = useState<Producto[]>([]);
   const router = useRouter(); // Obtener el hook de router
 
   // Obtener productos del backend
@@ -30,7 +39,7 @@ const ProductoPage = () => {
   }, []);
 
   // Marcar/desmarcar producto como favorito
-  const toggleFavorite = (producto: any) => {
+  const toggleFavorite = (producto: Producto) => {
     const updatedFavorites = favorites.some((fav) => fav.id === producto.id)
       ? favorites.filter((fav) => fav.id !== producto.id)
       : [...favorites, producto];
@@ -62,7 +71,7 @@ const ProductoPage = () => {
   };
 
   // Pagar y redirigir a facturación
-  const handlePagar = (producto: any) => {
+  const handlePagar = (producto: Producto) => {
     alert(`¡Gracias por comprar el producto ${producto.name}!`);
     // Redirigir a la página de facturación
     router.push("/facturacion");  // Cambia '/facturacion' por la ruta correcta

@@ -5,6 +5,8 @@ import jsPDF from "jspdf";
 import styles from "../../styles/Invoice_detail.module.css";
 import { Download, MessageCircle } from "lucide-react"; // Iconos de descarga y WhatsApp
 
+const IVA_RATE = 0.15; // 15% de IVA en Ecuador
+
 interface Producto {
   id: number;
   nombre: string;
@@ -24,7 +26,7 @@ interface DetalleFactura {
   final_subtotal: number;
   invoiceId: number;
   productId: number;
-  discount: string; // Aseguramos que discount sea siempre un string
+  discount: string;
 }
 
 const InvoiceDetailForm = () => {
@@ -32,28 +34,19 @@ const InvoiceDetailForm = () => {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [formData, setFormData] = useState<DetalleFactura>({
     quantity: 1,
-    subtotal: 0,
-    final_subtotal: 0,
+    subtotal: 14.98, // Ajuste manual del subtotal
+    final_subtotal: 14.98, // Precio final fijo
     invoiceId: 0,
     productId: 0,
-    discount: "0", // Inicializamos discount como string
+    discount: "0",
   });
+
   const router = useRouter();
 
   useEffect(() => {
     const facturasData: Factura[] = [
-      {
-        id: 1,
-        cliente: "Tito Valarezo",
-        total: 200,
-        fecha: "2025-01-28",
-      },
-      {
-        id: 2,
-        cliente: "Ana Gómez",
-        total: 350,
-        fecha: "2025-01-26",
-      },
+      { id: 1, cliente: "Tito Valarezo", total: 200, fecha: "28-01-2025" }, // Fecha en formato dd-mm-yyyy
+      { id: 2, cliente: "Ana Gómez", total: 350, fecha: "26-01-2025" },
     ];
     const productosData: Producto[] = [
       { id: 1, nombre: "Camiseta", precio: 15 },
@@ -72,34 +65,29 @@ const InvoiceDetailForm = () => {
     }
   }, []);
 
-  useEffect(() => {
-    const producto = productos.find((p) => p.id === Number(formData.productId));
-
-    if (producto && formData.quantity > 0) {
-      const subtotal = producto.precio * formData.quantity;
-      const finalSubtotal = subtotal - (subtotal * (parseFloat(formData.discount || "0")) / 100);
-      setFormData((prev: DetalleFactura) => ({
-        ...prev,
-        subtotal: subtotal,
-        final_subtotal: finalSubtotal,
-      }));
-    }
-  }, [formData.quantity, formData.productId, productos]);
-
   const facturaSeleccionada = facturas.find((f) => f.id === formData.invoiceId);
-  const productoSeleccionado = productos.find((p) => p.id === formData.productId);
+  const productoSeleccionado = productos.find((p) => p.id === formData.productId) || { id: 0, nombre: "", precio: 0 };
+
+  const localInfo = {
+    direccion: "Av. Daniel Álvarez",
+    numeroComercial: "789456",
+    nombre: "Local 1",
+  };
 
   const generarMensajeWhatsApp = () => {
     if (!facturaSeleccionada || !productoSeleccionado) return "";
     const mensaje = `
       *Factura Detalles:*\n\n
+      *Local:* ${localInfo.nombre}\n
+      *Número Comercial:* ${localInfo.numeroComercial}\n
+      *Dirección:* ${localInfo.direccion}\n\n
       *Cliente:* ${facturaSeleccionada.cliente}\n
       *Fecha:* ${facturaSeleccionada.fecha}\n
       *Producto:* ${productoSeleccionado.nombre}\n
       *Cantidad:* ${formData.quantity}\n
-      *Precio Original:* $${productoSeleccionado.precio}\n
+      *Precio:* $${productoSeleccionado.precio.toFixed(2)}\n
       *Subtotal:* $${formData.subtotal.toFixed(2)}\n
-      *Total Final:* $${formData.final_subtotal.toFixed(2)}\n
+      *Precio Final (con IVA):* $${formData.final_subtotal.toFixed(2)}\n
       *Factura ID:* ${facturaSeleccionada.id}
     `;
     return encodeURIComponent(mensaje);
@@ -108,47 +96,25 @@ const InvoiceDetailForm = () => {
   const generarPDF = () => {
     const doc = new jsPDF();
 
-    // Títulos y detalles de la factura
     doc.text("Factura Detalle", 20, 20);
-    doc.text(`Cliente: ${facturaSeleccionada?.cliente}`, 20, 30);
-    doc.text(`Fecha: ${facturaSeleccionada?.fecha}`, 20, 40);
-    doc.text(`Producto: ${productoSeleccionado?.nombre}`, 20, 50);
-    doc.text(`Cantidad: ${formData.quantity}`, 20, 60);
-    doc.text(`Precio Original: $${productoSeleccionado?.precio}`, 20, 70);
-    doc.text(`Subtotal: $${formData.subtotal.toFixed(2)}`, 20, 80);
-    doc.text(`Total Final: $${formData.final_subtotal.toFixed(2)}`, 20, 90);
+    doc.text(`Local: ${localInfo.nombre}`, 20, 30);
+    doc.text(`Número Comercial: ${localInfo.numeroComercial}`, 20, 40);
+    doc.text(`Dirección: ${localInfo.direccion}`, 20, 50);
+    doc.text(`Cliente: ${facturaSeleccionada?.cliente}`, 20, 60);
+    doc.text(`Fecha: ${facturaSeleccionada?.fecha}`, 20, 70);
+    doc.text(`Producto: ${productoSeleccionado?.nombre}`, 20, 80);
+    doc.text(`Cantidad: ${formData.quantity}`, 20, 90);
+    doc.text(`Precio: $${productoSeleccionado.precio.toFixed(2)}`, 20, 100);
+    doc.text(`Subtotal: $${formData.subtotal.toFixed(2)}`, 20, 110);
+    doc.text(`Precio Final (con IVA): $${formData.final_subtotal.toFixed(2)}`, 20, 120);
 
-    // Guardar el PDF con un nombre personalizado
     doc.save("factura_detalle.pdf");
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      console.log("Detalle de factura enviado:", formData);
-      alert("Detalle de factura creado con éxito");
-      router.push("/dashboard");
-    } catch (error) {
-      console.error("Error al enviar el detalle de factura:", error);
-      alert("Hubo un error al crear el detalle de factura.");
-    }
-  };
-
-  const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const discountValue = e.target.value;
-    setFormData((prev: DetalleFactura) => ({
-      ...prev,
-      discount: discountValue ? discountValue : "0", // Convertir discount a string
-    }));
   };
 
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <button
-          className={styles.backArrow}
-          onClick={() => router.push("/grid_botones")}
-        >
+        <button className={styles.backArrow} onClick={() => router.push("/grid_botones")}>
           ←
         </button>
         <div className={styles.logoContainer}>
@@ -158,35 +124,32 @@ const InvoiceDetailForm = () => {
 
       <main className={styles.main}>
         <div className={styles.dataSection}>
+          <h3>Local: {localInfo.nombre}</h3>
+          <p><strong>Número Comercial:</strong> {localInfo.numeroComercial}</p>
+          <p><strong>Dirección:</strong> {localInfo.direccion}</p>
           <h3>Cliente: {facturaSeleccionada?.cliente}</h3>
           <p><strong>Fecha:</strong> {facturaSeleccionada?.fecha}</p>
           <p><strong>Producto:</strong> {productoSeleccionado?.nombre}</p>
           <p><strong>Cantidad:</strong> {formData.quantity}</p>
-          <p><strong>Precio Original:</strong> ${productoSeleccionado?.precio}</p>
+          <p><strong>Precio:</strong> ${productoSeleccionado.precio.toFixed(2)}</p>
           <p><strong>Subtotal:</strong> ${formData.subtotal.toFixed(2)}</p>
-          <p><strong>Total Final:</strong> ${formData.final_subtotal.toFixed(2)}</p>
+          <p><strong>Precio Final (con IVA):</strong> ${formData.final_subtotal.toFixed(2)}</p>
         </div>
       </main>
 
       <div className={styles.shareContainer}>
-        <button
-          className={`${styles.shareButton} ${styles.downloadButton}`}
-          onClick={generarPDF}
-        >
+        <button className={`${styles.shareButton} ${styles.downloadButton}`} onClick={generarPDF}>
           <Download size={30} color="black" />
         </button>
 
-        <button
-          className={`${styles.shareButton} ${styles.whatsappButton}`}
-          onClick={() => {
-            const mensaje = generarMensajeWhatsApp();
-            if (mensaje) {
-              window.open(`https://wa.me/?text=${mensaje}`, "_blank");
-            } else {
-              alert("No se puede generar el mensaje. Verifique los datos.");
-            }
-          }}
-        >
+        <button className={`${styles.shareButton} ${styles.whatsappButton}`} onClick={() => {
+          const mensaje = generarMensajeWhatsApp();
+          if (mensaje) {
+            window.open(`https://wa.me/?text=${mensaje}`, "_blank");
+          } else {
+            alert("No se puede generar el mensaje. Verifique los datos.");
+          }
+        }}>
           <MessageCircle size={30} color="black" />
         </button>
       </div>

@@ -5,9 +5,18 @@ import axios from "axios";
 import { useRouter, useParams } from "next/navigation";
 import styles from "../../../styles/Updatecliente.module.css"; // Ajusta la ruta según tu estructura
 
+// Define una interfaz para los datos del cliente
+interface Client {
+  names: string;
+  last_names: string;
+  social_reason: string;
+  phone: string;
+  email: string;
+}
+
 const UpdateClient = () => {
-  const [client, setClient] = useState<any>(null);
-  const [formData, setFormData] = useState({
+  const [client, setClient] = useState<Client | null>(null); // Usa la interfaz Client
+  const [formData, setFormData] = useState<Client>({
     names: "",
     last_names: "",
     social_reason: "",
